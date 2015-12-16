@@ -7,12 +7,13 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/rbetts/voltdbgo/voltdb"
 	"log"
 	"math/rand"
 	"os"
 	"runtime/pprof"
 	"time"
+
+	"github.com/devopstaku/voltdbgo/voltdb"
 )
 
 var ttlContestants = 6

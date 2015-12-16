@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/rbetts/voltdbgo/voltdb"
 	"log"
 	"sort"
+
+	"github.com/devopstaku/voltdbgo/voltdb"
 )
 
 // StatsProcedure is the result of "@Statistics PROCEDURE"
@@ -119,11 +120,11 @@ func dumpProcedureCost(volt *voltdb.Conn) {
 	}
 
 	sorted := sortProcedureCostMap(statsByProcedure)
-    var ttlWeight int64 = 0
-    for _, stat := range sorted {
-        ttlWeight += stat.weight()
-    }
+	var ttlWeight int64 = 0
 	for _, stat := range sorted {
-		fmt.Printf("%0.1f%% %v\n",float64(stat.weight())/float64(ttlWeight) * 100, stat)
+		ttlWeight += stat.weight()
+	}
+	for _, stat := range sorted {
+		fmt.Printf("%0.1f%% %v\n", float64(stat.weight())/float64(ttlWeight)*100, stat)
 	}
 }
