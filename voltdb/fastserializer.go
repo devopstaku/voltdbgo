@@ -29,7 +29,7 @@ const (
 var order = binary.BigEndian
 
 // protoVersion is the implemented VoltDB wireprotocol version.
-const protoVersion = 1
+const protoVersion = 0
 
 func writeProtoVersion(w io.Writer) error {
 	var b [1]byte
