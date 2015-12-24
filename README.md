@@ -30,7 +30,7 @@ The simplest example, omitting correct error handling, is:
 
 ## Examples
 
-There are a few examples in github.com/rbetts/voltdbgo/cmds.
+There are a few examples in github.com/devopstaku/voltdbgo/cmds.
 
 ## Missing
 
