@@ -271,3 +271,8 @@ func (table *Table) Next(v interface{}) error {
 func (table *Table) HasNext() bool {
 	return table.rows.Len() > 0
 }
+
+// Scan for multi-struct in one row
+func (table *Table) Scan(args ...interface{}) error {
+	return table.scan(args...)
+}
