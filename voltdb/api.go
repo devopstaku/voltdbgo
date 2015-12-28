@@ -51,6 +51,12 @@ func NewConnection(user string, passwd string, hostAndPort string) (*Conn, error
 	return conn, nil
 }
 
+// NewConnectionPool creates an initialized, authenticated Conns, with maxIdle number.
+func NewConnectionPool(user, passwd, hostAndPort string, maxIdle, maxConn int) *ConnPool {
+	factory := func() (*Conn, error) { return NewConnection(user, passwd, hostAndPort) }
+	return NewConnPool(factory, maxIdle, maxConn)
+}
+
 // Close a connection if open. A Conn, once closed, has no further use.
 // To open a new connection, use NewConnection.
 func (conn *Conn) Close() error {
@@ -61,6 +67,11 @@ func (conn *Conn) Close() error {
 	conn.tcpConn = nil
 	conn.connData = nil
 	return err
+}
+
+// Judge Connection is closed
+func (conn *Conn) IsClosed() bool {
+	return conn.tcpConn == nil
 }
 
 // GoString provides a default printable format for Conn.
