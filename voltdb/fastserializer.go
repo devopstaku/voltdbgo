@@ -12,18 +12,23 @@ import (
 // See: http://community.voltdb.com/docs/WireProtocol/index
 
 const (
-	vt_ARRAY     int8 = -99 // array (short)(values*)
-	vt_NULL      int8 = 1   // null
-	vt_BOOL      int8 = 3   // boolean, byte
-	vt_SHORT     int8 = 4   // int16
-	vt_INT       int8 = 5   // int32
-	vt_LONG      int8 = 6   // int64
-	vt_FLOAT     int8 = 8   // float64
-	vt_STRING    int8 = 9   // string (int32-length-prefix)(utf-8 bytes)
-	vt_TIMESTAMP int8 = 11  // int64 timestamp microseconds
-	vt_TABLE     int8 = 21  // VoltTable
-	vt_DECIMAL   int8 = 22  // fix-scaled, fix-precision decimal
-	vt_VARBIN    int8 = 25  // varbinary (int)(bytes)
+	vt_ARRAY                  int8    = -99 // array (short)(values*)
+	vt_NULL                   int8    = 1   // null
+	vt_BOOL                   int8    = 3   // boolean, byte
+	vt_SHORT                  int8    = 4   // int16
+	vt_INT                    int8    = 5   // int32
+	vt_LONG                   int8    = 6   // int64
+	vt_FLOAT                  int8    = 8   // float64
+	vt_STRING                 int8    = 9   // string (int32-length-prefix)(utf-8 bytes)
+	vt_TIMESTAMP              int8    = 11  // int64 timestamp microseconds
+	vt_TABLE                  int8    = 21  // VoltTable
+	vt_DECIMAL                int8    = 22  // fix-scaled, fix-precision decimal
+	vt_VARBIN                 int8    = 25  // varbinary (int)(bytes)
+	vt_NULL_STRING_INDICATOR  int8    = -1
+	vt_NULL_SHORT_INDICATOR   int16   = -32768
+	vt_NULL_INTEGER_INDICATOR int32   = -2147483648
+	vt_NULL_LONG_INDICATOR    int64   = -9223372036854775808
+	vt_NULL_FLOAT_INDICATOR   float64 = -1.7E308
 )
 
 var order = binary.BigEndian
@@ -117,15 +122,18 @@ func writeInt(w io.Writer, d int32) error {
 	return err
 }
 
-func readInt(r io.Reader) (int32, error) {
+func readInt(r io.Reader) (result int32, err error) {
 	var b [4]byte
 	bs := b[:4]
-	_, err := r.Read(bs)
+	_, err = r.Read(bs)
 	if err != nil {
-		return 0, err
+		return
 	}
-	result := order.Uint32(bs)
-	return int32(result), nil
+	result = int32(order.Uint32(bs))
+	if result == vt_NULL_INTEGER_INDICATOR {
+		result = 0
+	}
+	return
 }
 
 func writeLong(w io.Writer, d int64) error {
@@ -136,15 +144,18 @@ func writeLong(w io.Writer, d int64) error {
 	return err
 }
 
-func readLong(r io.Reader) (int64, error) {
+func readLong(r io.Reader) (result int64, err error) {
 	var b [8]byte
 	bs := b[:8]
-	_, err := r.Read(bs)
+	_, err = r.Read(bs)
 	if err != nil {
-		return 0, err
+		return
 	}
-	result := order.Uint64(bs)
-	return int64(result), nil
+	result = int64(order.Uint64(bs))
+	if result == vt_NULL_LONG_INDICATOR {
+		result = int64(0)
+	}
+	return
 }
 
 func readTimestamp(r io.Reader) (time.Time, error) {
@@ -172,15 +183,18 @@ func writeFloat(w io.Writer, d float64) error {
 	return err
 }
 
-func readFloat(r io.Reader) (float64, error) {
+func readFloat(r io.Reader) (result float64, err error) {
 	var b [8]byte
 	bs := b[:8]
-	_, err := r.Read(bs)
+	_, err = r.Read(bs)
 	if err != nil {
-		return 0, err
+		return
 	}
-	result := order.Uint64(bs)
-	return math.Float64frombits(result), nil
+	result = math.Float64frombits(order.Uint64(bs))
+	if result == vt_NULL_FLOAT_INDICATOR {
+		result = float64(0)
+	}
+	return
 }
 
 func writeString(w io.Writer, d string) error {
@@ -204,6 +218,7 @@ func readString(r io.Reader) (result string, err error) {
 	if err != nil {
 		return
 	}
+	// While bs == vt_NULL_STRING_INDICATOR , this will return '"'
 	return string(bs), nil
 }
 
